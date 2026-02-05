@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GroupStatus {
+  OPEN
+  FULL
+  COMPLETED
+}
+
+enum GroupCategory {
+  SUBSCRIPTION
+  PHYSICAL_GOODS
+}
+
+enum ReportTargetType {
+  USER
+  MESSAGE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  phone        String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  trustScore   Int      @default(50)
+  displayName  String?
+  avatarUrl    String?
+  city         String?
+  bio          String?
+  lastSeenAt   DateTime?
+
+  sessions     Session[]
+  groupsOwned  Group[]  @relation("GroupOwner")
+  memberships  GroupMember[]
+  messages     ChatMessage[]
+  reportsFiled Report[] @relation("ReportsFiled")
+  reportsOn    Report[] @relation("ReportsOn")
+  blocks       Block[]  @relation("BlocksBy")
+  blockedBy    Block[]  @relation("BlocksOn")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model OtpRequest {
+  id         String   @id @default(cuid())
+  phone      String
+  code       String
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+}
+
+model Group {
+  id           String        @id @default(cuid())
+  ownerId      String
+  owner        User          @relation("GroupOwner", fields: [ownerId], references: [id])
+  title        String
+  description  String
+  category     GroupCategory
+  city         String
+  area         String?
+  deadlineAt   DateTime
+  status       GroupStatus   @default(OPEN)
+  maxMembers   Int           @default(5)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  meetup       Meetup?
+  members      GroupMember[]
+  messages     ChatMessage[]
+  boosts       Boost[]
+}
+
+model GroupMember {
+  id        String   @id @default(cuid())
+  userId    String
+  groupId   String
+  role      String   @default("member")
+  joinedAt  DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  group     Group    @relation(fields: [groupId], references: [id])
+
+  @@unique([userId, groupId])
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  groupId    String
+  userId     String
+  body       String
+  createdAt  DateTime @default(now())
+  flagged    Boolean  @default(false)
+
+  group      Group    @relation(fields: [groupId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Meetup {
+  id        String   @id @default(cuid())
+  groupId   String   @unique
+  time      DateTime
+  place     String
+  notes     String?
+
+  group     Group    @relation(fields: [groupId], references: [id])
+}
+
+model Report {
+  id              String           @id @default(cuid())
+  reporterId      String
+  targetType      ReportTargetType
+  targetUserId    String?
+  targetMessageId String?
+  reason          String
+  createdAt       DateTime         @default(now())
+
+  reporter        User             @relation("ReportsFiled", fields: [reporterId], references: [id])
+  targetUser      User?            @relation("ReportsOn", fields: [targetUserId], references: [id])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  blocker   User     @relation("BlocksBy", fields: [blockerId], references: [id])
+  blocked   User     @relation("BlocksOn", fields: [blockedId], references: [id])
+
+  @@unique([blockerId, blockedId])
+}
+
+model Boost {
+  id        String   @id @default(cuid())
+  groupId   String
+  userId    String
+  amountPLN Int      @default(1)
+  createdAt DateTime @default(now())
+
+  group     Group    @relation(fields: [groupId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}

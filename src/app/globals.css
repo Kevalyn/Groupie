@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-sand text-ink antialiased;
+}
+
+.gradient-bg {
+  background: radial-gradient(circle at top, rgba(112, 240, 165, 0.4), transparent 50%),
+    radial-gradient(circle at 20% 20%, rgba(255, 107, 74, 0.3), transparent 40%),
+    linear-gradient(180deg, #f7f2ea, #fffaf3 55%, #f1e9de);
+}
+
+.card {
+  @apply rounded-xl2 bg-white/80 backdrop-blur border border-white/60 shadow-glow;
+}
