@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ServiceWorker } from "@/components/ServiceWorker";
-import { CsrfMeta } from "@/components/CsrfMeta";
+import CsrfMeta from "@/components/CsrfMeta";
 import { Space_Grotesk } from "next/font/google";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
@@ -11,7 +11,6 @@ export const metadata: Metadata = {
   description: "Create and join trusted groups to share purchases or subscription slots.",
   applicationName: "Groupie",
   manifest: "/manifest.webmanifest",
-  themeColor: "#f7f2ea",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

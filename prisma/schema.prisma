@@ -24,25 +24,26 @@ enum ReportTargetType {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  phone        String   @unique
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  trustScore   Int      @default(50)
-  displayName  String?
-  avatarUrl    String?
-  city         String?
-  bio          String?
-  lastSeenAt   DateTime?
+  id          String    @id @default(cuid())
+  phone       String    @unique
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  trustScore  Int       @default(50)
+  displayName String?
+  avatarUrl   String?
+  city        String?
+  bio         String?
+  lastSeenAt  DateTime?
 
   sessions     Session[]
-  groupsOwned  Group[]  @relation("GroupOwner")
+  groupsOwned  Group[]       @relation("GroupOwner")
   memberships  GroupMember[]
   messages     ChatMessage[]
-  reportsFiled Report[] @relation("ReportsFiled")
-  reportsOn    Report[] @relation("ReportsOn")
-  blocks       Block[]  @relation("BlocksBy")
-  blockedBy    Block[]  @relation("BlocksOn")
+  reportsFiled Report[]      @relation("ReportsFiled")
+  reportsOn    Report[]      @relation("ReportsOn")
+  blocks       Block[]       @relation("BlocksBy")
+  blockedBy    Block[]       @relation("BlocksOn")
+  boosts       Boost[]       @relation("BoostUser")
 }
 
 model Session {
@@ -55,68 +56,68 @@ model Session {
 }
 
 model OtpRequest {
-  id         String   @id @default(cuid())
-  phone      String
-  code       String
-  createdAt  DateTime @default(now())
-  expiresAt  DateTime
-  attempts   Int      @default(0)
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  attempts  Int      @default(0)
 }
 
 model Group {
-  id           String        @id @default(cuid())
-  ownerId      String
-  owner        User          @relation("GroupOwner", fields: [ownerId], references: [id])
-  title        String
-  description  String
-  category     GroupCategory
-  city         String
-  area         String?
-  deadlineAt   DateTime
-  status       GroupStatus   @default(OPEN)
-  maxMembers   Int           @default(5)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  ownerId     String
+  owner       User          @relation("GroupOwner", fields: [ownerId], references: [id])
+  title       String
+  description String
+  category    GroupCategory
+  city        String
+  area        String?
+  deadlineAt  DateTime
+  status      GroupStatus   @default(OPEN)
+  maxMembers  Int           @default(5)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
-  meetup       Meetup?
-  members      GroupMember[]
-  messages     ChatMessage[]
-  boosts       Boost[]
+  meetup   Meetup?
+  members  GroupMember[]
+  messages ChatMessage[]
+  boosts   Boost[]       @relation("BoostGroup")
 }
 
 model GroupMember {
-  id        String   @id @default(cuid())
-  userId    String
-  groupId   String
-  role      String   @default("member")
-  joinedAt  DateTime @default(now())
+  id       String   @id @default(cuid())
+  userId   String
+  groupId  String
+  role     String   @default("member")
+  joinedAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id])
-  group     Group    @relation(fields: [groupId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+  group Group @relation(fields: [groupId], references: [id])
 
   @@unique([userId, groupId])
 }
 
 model ChatMessage {
-  id         String   @id @default(cuid())
-  groupId    String
-  userId     String
-  body       String
-  createdAt  DateTime @default(now())
-  flagged    Boolean  @default(false)
+  id        String   @id @default(cuid())
+  groupId   String
+  userId    String
+  body      String
+  createdAt DateTime @default(now())
+  flagged   Boolean  @default(false)
 
-  group      Group    @relation(fields: [groupId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
+  group Group @relation(fields: [groupId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
 }
 
 model Meetup {
-  id        String   @id @default(cuid())
-  groupId   String   @unique
-  time      DateTime
-  place     String
-  notes     String?
+  id      String   @id @default(cuid())
+  groupId String   @unique
+  time    DateTime
+  place   String
+  notes   String?
 
-  group     Group    @relation(fields: [groupId], references: [id])
+  group Group @relation(fields: [groupId], references: [id])
 }
 
 model Report {
@@ -128,8 +129,8 @@ model Report {
   reason          String
   createdAt       DateTime         @default(now())
 
-  reporter        User             @relation("ReportsFiled", fields: [reporterId], references: [id])
-  targetUser      User?            @relation("ReportsOn", fields: [targetUserId], references: [id])
+  reporter   User  @relation("ReportsFiled", fields: [reporterId], references: [id])
+  targetUser User? @relation("ReportsOn", fields: [targetUserId], references: [id])
 }
 
 model Block {
@@ -138,8 +139,8 @@ model Block {
   blockedId String
   createdAt DateTime @default(now())
 
-  blocker   User     @relation("BlocksBy", fields: [blockerId], references: [id])
-  blocked   User     @relation("BlocksOn", fields: [blockedId], references: [id])
+  blocker User @relation("BlocksBy", fields: [blockerId], references: [id])
+  blocked User @relation("BlocksOn", fields: [blockedId], references: [id])
 
   @@unique([blockerId, blockedId])
 }
@@ -151,6 +152,6 @@ model Boost {
   amountPLN Int      @default(1)
   createdAt DateTime @default(now())
 
-  group     Group    @relation(fields: [groupId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  group Group @relation("BoostGroup", fields: [groupId], references: [id])
+  user  User  @relation("BoostUser", fields: [userId], references: [id])
 }

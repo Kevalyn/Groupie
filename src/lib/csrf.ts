@@ -1,28 +1,20 @@
 import crypto from "crypto";
 import { cookies } from "next/headers";
 
-const COOKIE_NAME = "groupie_csrf";
+export const CSRF_COOKIE_NAME = "groupie_csrf";
 
-export function getOrCreateCsrfToken() {
-  const cookieStore = cookies();
-  let token = cookieStore.get(COOKIE_NAME)?.value;
-
-  if (!token) {
-    token = crypto.randomBytes(16).toString("hex");
-    cookieStore.set(COOKIE_NAME, token, {
-      httpOnly: false,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/"
-    });
-  }
-
-  return token;
+export function getCsrfCookieToken() {
+  return cookies().get(CSRF_COOKIE_NAME)?.value ?? null;
 }
 
 export function validateCsrfToken(headerToken?: string) {
-  const cookieStore = cookies();
-  const cookieToken = cookieStore.get(COOKIE_NAME)?.value;
+  const cookieToken = getCsrfCookieToken();
   if (!cookieToken || !headerToken) return false;
-  return crypto.timingSafeEqual(Buffer.from(cookieToken), Buffer.from(headerToken));
+
+  // Prevent timing attacks (ensure equal length first)
+  const a = Buffer.from(cookieToken);
+  const b = Buffer.from(headerToken);
+  if (a.length !== b.length) return false;
+
+  return crypto.timingSafeEqual(a, b);
 }
